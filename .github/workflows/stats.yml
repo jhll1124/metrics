@@ -31,6 +31,8 @@ jobs:
           wakatime-username: jhll1124
           wakatime-compact-layout: true
           wakatime-card-title: Most Used Languages
+          wakatime-max-languages-count: 8
+          wakatime-hide-languages: true
 
       - name: save output
         run: |
