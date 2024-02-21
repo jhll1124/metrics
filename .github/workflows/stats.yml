@@ -1,0 +1,53 @@
+name: Stats
+
+on:
+  # Schedule monthly updates
+  schedule: [{ cron: '0 0 1 * *' }]
+  # (optional) Run workflow when pushing on master/main
+  push: { branches: ['master', 'main'] }
+  watch:
+    types: [started]
+
+jobs:
+  github-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - run: pip install lxml
+
+      - uses: jhll1124/github-stats@main
+        id: stats
+        with:
+          token: ${{ secrets.GHTOKEN }}
+
+          github-username: jhll1124
+
+          wakatime-username: jhll1124
+          wakatime-compact-layout: true
+          wakatime-card-title: Most Used Languages
+          wakatime-max-languages-count: 8
+
+      - name: save output
+        run: |
+          cat << EOF > github-stats.svg
+          ${{ steps.stats.outputs['github-stats.svg'] }}
+          EOF
+          cat << EOF > wakatime-stats.svg
+          ${{ steps.stats.outputs['wakatime-stats.svg'] }}
+          EOF
+
+      - name: merge svg
+        run: python merge_svg.py github-stats.svg wakatime-stats.svg > merged-stats.svg
+
+      - name: upload file
+        uses: jhll1124/github-upload-action@master
+        with:
+          file-path: merged-stats.svg
+          branch-name: main
+          commit-message: Update merged-stats.svg [Skip GitHub Action]
